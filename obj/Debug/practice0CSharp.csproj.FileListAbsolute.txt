@@ -31,3 +31,11 @@ C:\Users\XenoAron\Desktop\XenoAron\Programing\[Programing] - C Programing\개인
 C:\Users\XenoAron\Documents\GitHub\NaverCloud\bin\Debug\practice0CSharp.exe.config
 C:\Users\XenoAron\Documents\GitHub\NaverCloud\obj\Debug\practice0CSharp.exe
 C:\Users\XenoAron\Documents\GitHub\NaverCloud\obj\Debug\practice0CSharp.pdb
+C:\Users\XenoAron\Documents\GitHub\NaverCloud\bin\Debug\practice0CSharp.exe
+C:\Users\XenoAron\Documents\GitHub\NaverCloud\bin\Debug\practice0CSharp.pdb
+C:\Users\XenoAron\Documents\GitHub\NaverCloud\bin\Debug\Noesis.Javascript.dll
+C:\Users\XenoAron\Documents\GitHub\NaverCloud\obj\Debug\practice0CSharp.csprojResolveAssemblyReference.cache
+C:\Users\XenoAron\Documents\GitHub\NaverCloud\obj\Debug\practice0CSharp.Form1.resources
+C:\Users\XenoAron\Documents\GitHub\NaverCloud\obj\Debug\practice0CSharp.Htmlsrc.resources
+C:\Users\XenoAron\Documents\GitHub\NaverCloud\obj\Debug\practice0CSharp.Properties.Resources.resources
+C:\Users\XenoAron\Documents\GitHub\NaverCloud\obj\Debug\practice0CSharp.csproj.GenerateResource.Cache
