@@ -48,7 +48,6 @@ namespace practice0CSharp
                 textBox1.Enabled = false;
                 textBox2.Enabled = false;
                 button1.Enabled = false;
-                uploadbt.Enabled = true;
                 cloudConnect();
                 getList("");
                 drop = true;
@@ -220,6 +219,8 @@ namespace practice0CSharp
             {
                 downloadFile(select.Substring(0, select.Length));
             }
+            downloadbt.Enabled = false;
+            removeFilebt.Enabled = false;
         }
 
         private void downloadFile(string fileName)
@@ -347,6 +348,7 @@ namespace practice0CSharp
                 uploadLinks.Add(fileName);
                 uploadList.Items.Add(fileName.Substring(fileName.LastIndexOf('\\') + 1));
             }
+            uploadbt.Enabled = true;
         }
 
         private void uploadbt_Click(object sender, EventArgs e)
@@ -357,6 +359,7 @@ namespace practice0CSharp
                 case System.Windows.Forms.DialogResult.Yes:
                     uploadFiles();
                     getList();
+                    downloadbt.Enabled = false;
                     MessageBox.Show("Upload Complete!");
                     break;
                 case System.Windows.Forms.DialogResult.No:
@@ -495,7 +498,49 @@ namespace practice0CSharp
             files.Remove(new FileInfo(uploadList.Items[uploadList.SelectedIndex].ToString()));
             uploadLinks.RemoveAt(uploadList.SelectedIndex);
             uploadList.Items.Remove(uploadList.Items[uploadList.SelectedIndex]);
+            if (uploadList.Items.Count == 0)
+                uploadbt.Enabled = false;
             removebt.Enabled = false;
+        }
+
+        private void downloadList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (downloadList.SelectedIndex != -1)
+                downloadbt.Enabled = true;
+            else
+                downloadbt.Enabled = false;
+        }
+
+        private void downloadbt_Click(object sender, EventArgs e)
+        {
+            listBox1_DoubleClick(new object(), new EventArgs());
+            getList();
+        }
+
+        private void removeFilebt_Click(object sender, EventArgs e)
+        {
+            string responseFromServer = "";
+            HttpWebRequest Hwr2 = (HttpWebRequest)WebRequest.Create("http://files.cloud.naver.com/DoDelete.ndrive");
+            Hwr2.Method = "POST";
+            Hwr2.Referer = "http://cloud.naver.com/";
+            Hwr2.UserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36";
+            Hwr2.CookieContainer = cookie;
+
+            System.IO.Stream str = Hwr2.GetRequestStream();
+            System.IO.StreamWriter stwr = new System.IO.StreamWriter(str, new UTF8Encoding(false));
+            string n = HttpUtility.UrlEncode(DIR + downloadList.SelectedItem.ToString());
+            stwr.Write("userid=" + ID + "&useridx=" + IDX + "&ownerid=&owneridx=&owneridcnum=&orgresource=" + n + "&forcedelete=F");
+            stwr.Flush(); stwr.Close(); stwr.Dispose();
+            str.Flush(); str.Close(); str.Dispose();
+
+
+            HttpWebResponse response = (HttpWebResponse)Hwr2.GetResponse();
+
+            Stream dataStream = response.GetResponseStream();
+            StreamReader reader = new StreamReader(dataStream, Encoding.UTF8);
+
+            responseFromServer = reader.ReadToEnd();
+            getList();
         }
 
     }

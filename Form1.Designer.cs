@@ -44,6 +44,8 @@
             this.uploadbt = new System.Windows.Forms.Button();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.removebt = new System.Windows.Forms.Button();
+            this.removeFilebt = new System.Windows.Forms.Button();
+            this.downloadbt = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -122,8 +124,9 @@
             this.downloadList.ItemHeight = 12;
             this.downloadList.Location = new System.Drawing.Point(14, 60);
             this.downloadList.Name = "downloadList";
-            this.downloadList.Size = new System.Drawing.Size(256, 220);
+            this.downloadList.Size = new System.Drawing.Size(256, 196);
             this.downloadList.TabIndex = 6;
+            this.downloadList.SelectedIndexChanged += new System.EventHandler(this.downloadList_SelectedIndexChanged);
             this.downloadList.DoubleClick += new System.EventHandler(this.listBox1_DoubleClick);
             // 
             // openFolderbt
@@ -166,7 +169,7 @@
             this.uploadbt.Name = "uploadbt";
             this.uploadbt.Size = new System.Drawing.Size(54, 23);
             this.uploadbt.TabIndex = 10;
-            this.uploadbt.Text = "업로드";
+            this.uploadbt.Text = "올리기";
             this.uploadbt.UseVisualStyleBackColor = true;
             this.uploadbt.Click += new System.EventHandler(this.uploadbt_Click);
             // 
@@ -185,11 +188,34 @@
             this.removebt.UseVisualStyleBackColor = true;
             this.removebt.Click += new System.EventHandler(this.removebt_Click);
             // 
+            // removeFilebt
+            // 
+            this.removeFilebt.Location = new System.Drawing.Point(210, 262);
+            this.removeFilebt.Name = "removeFilebt";
+            this.removeFilebt.Size = new System.Drawing.Size(60, 23);
+            this.removeFilebt.TabIndex = 12;
+            this.removeFilebt.Text = "삭제";
+            this.removeFilebt.UseVisualStyleBackColor = true;
+            this.removeFilebt.Click += new System.EventHandler(this.removeFilebt_Click);
+            // 
+            // downloadbt
+            // 
+            this.downloadbt.Enabled = false;
+            this.downloadbt.Location = new System.Drawing.Point(129, 262);
+            this.downloadbt.Name = "downloadbt";
+            this.downloadbt.Size = new System.Drawing.Size(75, 23);
+            this.downloadbt.TabIndex = 14;
+            this.downloadbt.Text = "내려받기";
+            this.downloadbt.UseVisualStyleBackColor = true;
+            this.downloadbt.Click += new System.EventHandler(this.downloadbt_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(555, 325);
+            this.Controls.Add(this.downloadbt);
+            this.Controls.Add(this.removeFilebt);
             this.Controls.Add(this.removebt);
             this.Controls.Add(this.uploadbt);
             this.Controls.Add(this.searchFilebt);
@@ -230,6 +256,8 @@
         private System.Windows.Forms.Button uploadbt;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.Button removebt;
+        private System.Windows.Forms.Button removeFilebt;
+        private System.Windows.Forms.Button downloadbt;
     }
 }
 
