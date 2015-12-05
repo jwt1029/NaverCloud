@@ -28,3 +28,6 @@ C:\Users\XenoAron\Desktop\XenoAron\Programing\[Programing] - C Programing\개인
 C:\Users\XenoAron\Desktop\XenoAron\Programing\[Programing] - C Programing\개인 제작\[Project]\Cloud\obj\Debug\practice0CSharp.Properties.Resources.resources
 C:\Users\XenoAron\Desktop\XenoAron\Programing\[Programing] - C Programing\개인 제작\[Project]\Cloud\obj\Debug\practice0CSharp.csproj.GenerateResource.Cache
 C:\Users\XenoAron\Desktop\XenoAron\Programing\[Programing] - C Programing\개인 제작\[Project]\Cloud\bin\Debug\practice0CSharp.exe.config
+C:\Users\XenoAron\Documents\GitHub\NaverCloud\bin\Debug\practice0CSharp.exe.config
+C:\Users\XenoAron\Documents\GitHub\NaverCloud\obj\Debug\practice0CSharp.exe
+C:\Users\XenoAron\Documents\GitHub\NaverCloud\obj\Debug\practice0CSharp.pdb
