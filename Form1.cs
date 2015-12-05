@@ -28,6 +28,7 @@ namespace practice0CSharp
         private int pageIndex = 0;
         private List<string> uploadLinks = new List<string>();
         private List<FileInfo> files = new List<FileInfo>();
+        private bool drop = false;
 
         private CookieContainer cookie;
         public Form1()
@@ -50,7 +51,7 @@ namespace practice0CSharp
                 uploadbt.Enabled = true;
                 cloudConnect();
                 getList("");
-                uploadList.AllowDrop = true;
+                drop = true;
             }
             else
             {
@@ -459,10 +460,13 @@ namespace practice0CSharp
 
         private void uploadList_DragEnter(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-                e.Effect = DragDropEffects.All;
-            else
-                e.Effect = DragDropEffects.None;
+            if (drop)
+            {
+                if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                    e.Effect = DragDropEffects.All;
+                else
+                    e.Effect = DragDropEffects.None;
+            }
         }
 
         private void searchFilebt_Click(object sender, EventArgs e)

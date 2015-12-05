@@ -138,6 +138,7 @@
             // 
             // uploadList
             // 
+            this.uploadList.AllowDrop = true;
             this.uploadList.FormattingEnabled = true;
             this.uploadList.ItemHeight = 12;
             this.uploadList.Location = new System.Drawing.Point(284, 60);
