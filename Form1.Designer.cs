@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.textBox1 = new System.Windows.Forms.TextBox();
@@ -46,6 +47,15 @@
             this.removebt = new System.Windows.Forms.Button();
             this.removeFilebt = new System.Windows.Forms.Button();
             this.downloadbt = new System.Windows.Forms.Button();
+            this.downloadlb = new System.Windows.Forms.Label();
+            this.uploadlb = new System.Windows.Forms.Label();
+            this.removelb = new System.Windows.Forms.Label();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.timer2 = new System.Windows.Forms.Timer(this.components);
+            this.timer3 = new System.Windows.Forms.Timer(this.components);
+            this.timer4 = new System.Windows.Forms.Timer(this.components);
+            this.timer5 = new System.Windows.Forms.Timer(this.components);
+            this.timer6 = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // label1
@@ -190,6 +200,7 @@
             // 
             // removeFilebt
             // 
+            this.removeFilebt.Enabled = false;
             this.removeFilebt.Location = new System.Drawing.Point(210, 262);
             this.removeFilebt.Name = "removeFilebt";
             this.removeFilebt.Size = new System.Drawing.Size(60, 23);
@@ -209,11 +220,71 @@
             this.downloadbt.UseVisualStyleBackColor = true;
             this.downloadbt.Click += new System.EventHandler(this.downloadbt_Click);
             // 
+            // downloadlb
+            // 
+            this.downloadlb.AutoSize = true;
+            this.downloadlb.Location = new System.Drawing.Point(558, 24);
+            this.downloadlb.Name = "downloadlb";
+            this.downloadlb.Size = new System.Drawing.Size(123, 12);
+            this.downloadlb.TabIndex = 15;
+            this.downloadlb.Text = "Download Complete!";
+            // 
+            // uploadlb
+            // 
+            this.uploadlb.AutoSize = true;
+            this.uploadlb.Location = new System.Drawing.Point(558, 24);
+            this.uploadlb.Name = "uploadlb";
+            this.uploadlb.Size = new System.Drawing.Size(106, 12);
+            this.uploadlb.TabIndex = 15;
+            this.uploadlb.Text = "Upload Complete!";
+            // 
+            // removelb
+            // 
+            this.removelb.AutoSize = true;
+            this.removelb.Location = new System.Drawing.Point(558, 24);
+            this.removelb.Name = "removelb";
+            this.removelb.Size = new System.Drawing.Size(113, 12);
+            this.removelb.TabIndex = 15;
+            this.removelb.Text = "Remove Complete!";
+            // 
+            // timer1
+            // 
+            this.timer1.Interval = 1;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
+            // timer2
+            // 
+            this.timer2.Interval = 1;
+            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
+            // 
+            // timer3
+            // 
+            this.timer3.Interval = 1;
+            this.timer3.Tick += new System.EventHandler(this.timer3_Tick);
+            // 
+            // timer4
+            // 
+            this.timer4.Interval = 1;
+            this.timer4.Tick += new System.EventHandler(this.timer4_Tick);
+            // 
+            // timer5
+            // 
+            this.timer5.Interval = 1;
+            this.timer5.Tick += new System.EventHandler(this.timer5_Tick);
+            // 
+            // timer6
+            // 
+            this.timer6.Interval = 1;
+            this.timer6.Tick += new System.EventHandler(this.timer6_Tick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(555, 325);
+            this.Controls.Add(this.removelb);
+            this.Controls.Add(this.uploadlb);
+            this.Controls.Add(this.downloadlb);
             this.Controls.Add(this.downloadbt);
             this.Controls.Add(this.removeFilebt);
             this.Controls.Add(this.removebt);
@@ -258,6 +329,15 @@
         private System.Windows.Forms.Button removebt;
         private System.Windows.Forms.Button removeFilebt;
         private System.Windows.Forms.Button downloadbt;
+        private System.Windows.Forms.Label downloadlb;
+        private System.Windows.Forms.Label uploadlb;
+        private System.Windows.Forms.Label removelb;
+        private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Timer timer2;
+        private System.Windows.Forms.Timer timer3;
+        private System.Windows.Forms.Timer timer4;
+        private System.Windows.Forms.Timer timer5;
+        private System.Windows.Forms.Timer timer6;
     }
 }
 

@@ -221,14 +221,15 @@ namespace practice0CSharp
             }
             downloadbt.Enabled = false;
             removeFilebt.Enabled = false;
+
         }
 
         private void downloadFile(string fileName)
         {
             string key = getGenerateKey();
             string filekey = getFileKey(key);
-            string n = HttpUtility.UrlEncode(fileName);
-            HttpWebRequest Hwr2 = (HttpWebRequest)WebRequest.Create("http://files.cloud.naver.com" + DIR + n + "?attachment=2&userid=" + ID + "&useridx=" + IDX + "&NDriveSvcType=NHN/ND-WEB%20Ver"); //&key=" + key + "&filekey=" + filekey);
+            string encodestr = HttpUtility.UrlEncode(fileName);
+            HttpWebRequest Hwr2 = (HttpWebRequest)WebRequest.Create("http://files.cloud.naver.com" + DIR + encodestr + "?attachment=2&userid=" + ID + "&useridx=" + IDX + "&NDriveSvcType=NHN/ND-WEB%20Ver"); //&key=" + key + "&filekey=" + filekey);
             Hwr2.Method = "GET";
             Hwr2.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
             Hwr2.CookieContainer = cookie;
@@ -242,7 +243,8 @@ namespace practice0CSharp
                 InitializePath.Create();
             File.WriteAllBytes(InitializePath.ToString() + "\\" + fileName, data);
             dataStream.Flush();
-            MessageBox.Show("Download Complete!");
+            timer1.Start();
+            //MessageBox.Show("Download Complete!");
         }
 
         public static byte[] ReadFully(Stream input)
@@ -360,7 +362,7 @@ namespace practice0CSharp
                     uploadFiles();
                     getList();
                     downloadbt.Enabled = false;
-                    MessageBox.Show("Upload Complete!");
+                    timer3.Start();
                     break;
                 case System.Windows.Forms.DialogResult.No:
                     break;
@@ -373,7 +375,8 @@ namespace practice0CSharp
             byte[] reqBody = setRequestBody();
             string responseFromServer = "";
             string name = uploadList.Items[0].ToString();
-            HttpWebRequest Hwr2 = (HttpWebRequest)WebRequest.Create("http://files.cloud.naver.com/" + name.Substring(name.IndexOf("\\") + 1));
+            //string encodestr = HttpUtility.UrlEncode(DIR + name);
+            HttpWebRequest Hwr2 = (HttpWebRequest)WebRequest.Create("http://files.cloud.naver.com" + DIR + name);
             Hwr2.Method = "POST";
             Hwr2.ContentType = "multipart/form-data; boundary=----WebKitFormBoundary7fmHxHYr8HlMFKWY";
             Hwr2.Referer = "http://cloud.naver.com/";
@@ -505,10 +508,16 @@ namespace practice0CSharp
 
         private void downloadList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (downloadList.SelectedIndex != -1)
+            if (downloadList.SelectedIndex != -1 && downloadList.SelectedItem.ToString()!="...")
+            {
                 downloadbt.Enabled = true;
+                removeFilebt.Enabled = true;
+            }
             else
+            {
                 downloadbt.Enabled = false;
+                removeFilebt.Enabled = false;
+            }
         }
 
         private void downloadbt_Click(object sender, EventArgs e)
@@ -528,8 +537,8 @@ namespace practice0CSharp
 
             System.IO.Stream str = Hwr2.GetRequestStream();
             System.IO.StreamWriter stwr = new System.IO.StreamWriter(str, new UTF8Encoding(false));
-            string n = HttpUtility.UrlEncode(DIR + downloadList.SelectedItem.ToString());
-            stwr.Write("userid=" + ID + "&useridx=" + IDX + "&ownerid=&owneridx=&owneridcnum=&orgresource=" + n + "&forcedelete=F");
+            string encodestr = HttpUtility.UrlEncode(DIR + downloadList.SelectedItem.ToString());
+            stwr.Write("userid=" + ID + "&useridx=" + IDX + "&ownerid=&owneridx=&owneridcnum=&orgresource=" + encodestr + "&forcedelete=F");
             stwr.Flush(); stwr.Close(); stwr.Dispose();
             str.Flush(); str.Close(); str.Dispose();
 
@@ -540,7 +549,76 @@ namespace practice0CSharp
             StreamReader reader = new StreamReader(dataStream, Encoding.UTF8);
 
             responseFromServer = reader.ReadToEnd();
+            timer5.Start();
             getList();
+        }
+        int cntA;
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if (downloadlb.Location.X == 428)
+            {
+                if (cntA == 40)
+                {
+                    timer1.Stop();
+                    timer2.Start();
+                }
+                cntA++;
+            }
+            else
+                downloadlb.Location = new Point(downloadlb.Location.X - 2, downloadlb.Location.Y);
+        }
+
+        private void timer2_Tick(object sender, EventArgs e)
+        {
+            if (downloadlb.Location.Y == 558)
+                timer2.Stop();
+            downloadlb.Location = new Point(downloadlb.Location.X + 1, downloadlb.Location.Y);
+        }
+
+        int cntB;
+        private void timer3_Tick(object sender, EventArgs e)
+        {
+            if (uploadlb.Location.X == 428)
+            {
+                if (cntB == 40)
+                {
+                    timer3.Stop();
+                    timer4.Start();
+                }
+                cntB++;
+            }
+            else
+                uploadlb.Location = new Point(uploadlb.Location.X - 2, uploadlb.Location.Y);
+        }
+
+        private void timer4_Tick(object sender, EventArgs e)
+        {
+            if (uploadlb.Location.Y == 558)
+                timer4.Stop();
+            uploadlb.Location = new Point(uploadlb.Location.X + 1, uploadlb.Location.Y);
+        }
+
+        int cntC;
+        private void timer5_Tick(object sender, EventArgs e)
+        {
+            if (removelb.Location.X == 428)
+            {
+                if (cntC == 40)
+                {
+                    timer5.Stop();
+                    timer6.Start();
+                }
+                cntC++;
+            }
+            else
+                removelb.Location = new Point(removelb.Location.X - 2, removelb.Location.Y);
+        }
+
+        private void timer6_Tick(object sender, EventArgs e)
+        {
+            if (removelb.Location.Y == 558)
+                timer6.Stop();
+            removelb.Location = new Point(removelb.Location.X + 1, removelb.Location.Y);
         }
 
     }
