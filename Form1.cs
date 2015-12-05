@@ -92,7 +92,7 @@ namespace practice0CSharp
             Hwr2.CookieContainer = cookie;
 
             System.IO.Stream str = Hwr2.GetRequestStream();
-            System.IO.StreamWriter stwr = new System.IO.StreamWriter(str, Encoding.Default);
+            System.IO.StreamWriter stwr = new System.IO.StreamWriter(str, new UTF8Encoding(false));
             DIR += dir + "/";
             stwr.Write("userid=" + ID + "&useridx=" + IDX + "&orgresource=" + DIR + "&type=3&depth=0&sort=credate&order=desc&startnum=0&pagingrow=100");
             //MessageBox.Show("Success!");
@@ -225,10 +225,10 @@ namespace practice0CSharp
         {
             string key = getGenerateKey();
             string filekey = getFileKey(key);
-
-            HttpWebRequest Hwr2 = (HttpWebRequest)WebRequest.Create("http://files.cloud.naver.com" + DIR + fileName + "?attachment=2&userid=" + ID + "&useridx=" + IDX + "&NDriveSvcType=NHN/ND-WEB%20Ver&key=" + key + "&filekey=" + filekey);
+            string n = HttpUtility.UrlEncode(fileName);
+            HttpWebRequest Hwr2 = (HttpWebRequest)WebRequest.Create("http://files.cloud.naver.com" + DIR + n + "?attachment=2&userid=" + ID + "&useridx=" + IDX + "&NDriveSvcType=NHN/ND-WEB%20Ver"); //&key=" + key + "&filekey=" + filekey);
             Hwr2.Method = "GET";
-
+            Hwr2.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
             Hwr2.CookieContainer = cookie;
 
             HttpWebResponse response = (HttpWebResponse)Hwr2.GetResponse();
