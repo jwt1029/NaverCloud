@@ -39,3 +39,4 @@ C:\Users\XenoAron\Documents\GitHub\NaverCloud\obj\Debug\practice0CSharp.Form1.re
 C:\Users\XenoAron\Documents\GitHub\NaverCloud\obj\Debug\practice0CSharp.Htmlsrc.resources
 C:\Users\XenoAron\Documents\GitHub\NaverCloud\obj\Debug\practice0CSharp.Properties.Resources.resources
 C:\Users\XenoAron\Documents\GitHub\NaverCloud\obj\Debug\practice0CSharp.csproj.GenerateResource.Cache
+C:\Users\XenoAron\Documents\GitHub\NaverCloud\bin\Debug\System.Net.Json.dll

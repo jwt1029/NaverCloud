@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Net;
 using System.IO;
 using System.Web;
+using System.Net.Json;
 
 namespace practice0CSharp
 {
@@ -359,9 +360,12 @@ namespace practice0CSharp
             switch (MessageBox.Show(uploadList.Items.Count + "개의 파일을 " + DIR + "로 업로드 하시겠습니까?", "업로드", MessageBoxButtons.YesNo))
             {
                 case System.Windows.Forms.DialogResult.Yes:
-                    uploadFiles();
+                    if (!uploadcheck())
+                        break;
                     getList();
                     downloadbt.Enabled = false;
+                    files.Clear();
+                    uploadLinks.Clear();
                     timer3.Start();
                     break;
                 case System.Windows.Forms.DialogResult.No:
@@ -370,9 +374,57 @@ namespace practice0CSharp
             }
         }
 
-        private void uploadFiles()
+        private bool uploadcheck()
         {
-            byte[] reqBody = setRequestBody();
+            string responseFromServer = "";
+            HttpWebRequest Hwr2 = (HttpWebRequest)WebRequest.Create("http://files.cloud.naver.com/CheckUpload.ndrive");
+            Hwr2.Method = "POST";
+            Hwr2.Referer = "http://cloud.naver.com/";
+            Hwr2.UserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36";
+            Hwr2.CookieContainer = cookie;
+
+            System.IO.Stream str = Hwr2.GetRequestStream();
+            System.IO.StreamWriter stwr = new System.IO.StreamWriter(str, new UTF8Encoding(false));
+            string encodestr = HttpUtility.UrlEncode(DIR + uploadList.Items[0].ToString());
+            string dateEncode = HttpUtility.UrlEncode(files[0].LastWriteTime.ToString("s") + "+09:00");
+            stwr.Write("userid=" + ID + "&useridx=" + IDX + "&uploadsize=" + files[0].Length.ToString() + "&overwrite=F&getlastmodified=" + dateEncode + "&dstresource=" + encodestr);
+            stwr.Flush(); stwr.Close(); stwr.Dispose();
+            str.Flush(); str.Close(); str.Dispose();
+
+
+            HttpWebResponse response = (HttpWebResponse)Hwr2.GetResponse();
+
+            Stream dataStream = response.GetResponseStream();
+            StreamReader reader = new StreamReader(dataStream, Encoding.UTF8);
+
+            responseFromServer = reader.ReadToEnd();
+
+            JsonTextParser parser = new JsonTextParser();
+            JsonObject obj = parser.Parse(responseFromServer);
+            JsonObjectCollection col = (JsonObjectCollection)obj;
+            if ((string)col["message"].GetValue() == "Duplicated File Exist")
+            {
+                string filename = ((JsonStringValue)((JsonObjectCollection)col["resultvalue"])[0]).Value;
+                filename = filename.Substring(filename.LastIndexOf("/") + 1);
+                string fileAtime = files[0].LastWriteTime.ToString("s") + "+09:00";         // Existing File LastModified
+                string fileBtime = ((JsonStringValue)((JsonObjectCollection)col["resultvalue"])[1]).Value;          // New File LastModified
+                switch (MessageBox.Show("이 위치에 같은 이름의 파일이 있습니다." + Environment.NewLine + "기존 파일을 덮어쓰시겠습니까?" + Environment.NewLine + "이름 : " + filename + Environment.NewLine + "신규 : " +fileAtime + Environment.NewLine + "기존 : " + fileBtime, "업로드", MessageBoxButtons.YesNo))
+                {
+                    case System.Windows.Forms.DialogResult.Yes:
+                        uploadFiles(true);     //overwrite = T
+                        return true;
+                    case System.Windows.Forms.DialogResult.No:
+                        return false;
+
+                }
+            }
+            uploadFiles(false);     //overwrite = F
+            return true;
+        }
+
+        private void uploadFiles(bool overwrite)
+        {
+            byte[] reqBody = setRequestBody(overwrite);
             string responseFromServer = "";
             string name = uploadList.Items[0].ToString();
             //string encodestr = HttpUtility.UrlEncode(DIR + name);
@@ -414,7 +466,7 @@ namespace practice0CSharp
             uploadList.Items.Clear();
         }
 
-        private byte[] setRequestBody()
+        private byte[] setRequestBody(bool overwrite)
         {
             byte[] buffer;
             string boundary = "------WebKitFormBoundary7fmHxHYr8HlMFKWY";
@@ -434,7 +486,10 @@ namespace practice0CSharp
             ReqBody[12] = boundary;
             ReqBody[13] = "Content-Disposition: form-data; name=\"overwrite\"";
             ReqBody[14] = "";
-            ReqBody[15] = "F";
+            if (overwrite)
+                ReqBody[15] = "T";
+            else
+                ReqBody[15] = "F";
             ReqBody[16] = boundary;
             ReqBody[17] = "Content-Disposition: form-data; name=\"filesize\"";
             ReqBody[18] = "";
@@ -498,7 +553,7 @@ namespace practice0CSharp
 
         private void removebt_Click(object sender, EventArgs e)
         {
-            files.Remove(new FileInfo(uploadList.Items[uploadList.SelectedIndex].ToString()));
+            files.RemoveAt(uploadList.SelectedIndex);
             uploadLinks.RemoveAt(uploadList.SelectedIndex);
             uploadList.Items.Remove(uploadList.Items[uploadList.SelectedIndex]);
             if (uploadList.Items.Count == 0)
@@ -555,10 +610,11 @@ namespace practice0CSharp
         int cntA;
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (downloadlb.Location.X == 428)
+            if (downloadlb.Location.X <= 428)
             {
                 if (cntA == 40)
                 {
+                    cntA = 0;
                     timer1.Stop();
                     timer2.Start();
                 }
@@ -570,7 +626,7 @@ namespace practice0CSharp
 
         private void timer2_Tick(object sender, EventArgs e)
         {
-            if (downloadlb.Location.Y == 558)
+            if (downloadlb.Location.Y >= 558)
                 timer2.Stop();
             downloadlb.Location = new Point(downloadlb.Location.X + 1, downloadlb.Location.Y);
         }
@@ -578,10 +634,11 @@ namespace practice0CSharp
         int cntB;
         private void timer3_Tick(object sender, EventArgs e)
         {
-            if (uploadlb.Location.X == 428)
+            if (uploadlb.Location.X <= 428)
             {
                 if (cntB == 40)
                 {
+                    cntB = 0;
                     timer3.Stop();
                     timer4.Start();
                 }
@@ -593,7 +650,7 @@ namespace practice0CSharp
 
         private void timer4_Tick(object sender, EventArgs e)
         {
-            if (uploadlb.Location.Y == 558)
+            if (uploadlb.Location.X >= 558)
                 timer4.Stop();
             uploadlb.Location = new Point(uploadlb.Location.X + 1, uploadlb.Location.Y);
         }
@@ -601,10 +658,11 @@ namespace practice0CSharp
         int cntC;
         private void timer5_Tick(object sender, EventArgs e)
         {
-            if (removelb.Location.X == 428)
+            if (removelb.Location.X <= 428)
             {
                 if (cntC == 40)
                 {
+                    cntC = 0;
                     timer5.Stop();
                     timer6.Start();
                 }
@@ -616,7 +674,7 @@ namespace practice0CSharp
 
         private void timer6_Tick(object sender, EventArgs e)
         {
-            if (removelb.Location.Y == 558)
+            if (removelb.Location.Y >= 558)
                 timer6.Stop();
             removelb.Location = new Point(removelb.Location.X + 1, removelb.Location.Y);
         }
