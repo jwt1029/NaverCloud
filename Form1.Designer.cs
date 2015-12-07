@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.textBox1 = new System.Windows.Forms.TextBox();
@@ -56,6 +57,7 @@
             this.timer4 = new System.Windows.Forms.Timer(this.components);
             this.timer5 = new System.Windows.Forms.Timer(this.components);
             this.timer6 = new System.Windows.Forms.Timer(this.components);
+            this.previewbt = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -131,6 +133,7 @@
             // downloadList
             // 
             this.downloadList.FormattingEnabled = true;
+            this.downloadList.HorizontalScrollbar = true;
             this.downloadList.ItemHeight = 12;
             this.downloadList.Location = new System.Drawing.Point(14, 60);
             this.downloadList.Name = "downloadList";
@@ -153,6 +156,7 @@
             // 
             this.uploadList.AllowDrop = true;
             this.uploadList.FormattingEnabled = true;
+            this.uploadList.HorizontalScrollbar = true;
             this.uploadList.ItemHeight = 12;
             this.uploadList.Location = new System.Drawing.Point(284, 60);
             this.uploadList.Name = "uploadList";
@@ -277,11 +281,23 @@
             this.timer6.Interval = 1;
             this.timer6.Tick += new System.EventHandler(this.timer6_Tick);
             // 
+            // previewbt
+            // 
+            this.previewbt.Enabled = false;
+            this.previewbt.Image = ((System.Drawing.Image)(resources.GetObject("previewbt.Image")));
+            this.previewbt.Location = new System.Drawing.Point(543, 132);
+            this.previewbt.Name = "previewbt";
+            this.previewbt.Size = new System.Drawing.Size(17, 75);
+            this.previewbt.TabIndex = 16;
+            this.previewbt.UseVisualStyleBackColor = true;
+            this.previewbt.Click += new System.EventHandler(this.previewbt_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(555, 325);
+            this.ClientSize = new System.Drawing.Size(558, 326);
+            this.Controls.Add(this.previewbt);
             this.Controls.Add(this.removelb);
             this.Controls.Add(this.uploadlb);
             this.Controls.Add(this.downloadlb);
@@ -304,6 +320,7 @@
             this.Name = "Form1";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);
+            this.LocationChanged += new System.EventHandler(this.Form1_LocationChanged);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -338,6 +355,7 @@
         private System.Windows.Forms.Timer timer4;
         private System.Windows.Forms.Timer timer5;
         private System.Windows.Forms.Timer timer6;
+        private System.Windows.Forms.Button previewbt;
     }
 }
 

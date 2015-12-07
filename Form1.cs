@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define TEST
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -11,6 +13,7 @@ using System.Net;
 using System.IO;
 using System.Web;
 using System.Net.Json;
+using System.Collections;
 
 namespace practice0CSharp
 {
@@ -19,7 +22,12 @@ namespace practice0CSharp
         void getCookie(CookieContainer cookies);
     }
 
-    public partial class Form1 : Form, IMyInterface
+    public interface PrevInterface
+    {
+        void formClose();
+    }
+
+    public partial class Form1 : Form, IMyInterface, PrevInterface
     {
         private string ID = null;
         private string PW = null;
@@ -30,6 +38,9 @@ namespace practice0CSharp
         private List<string> uploadLinks = new List<string>();
         private List<FileInfo> files = new List<FileInfo>();
         private bool drop = false;
+        private Hashtable resourceNo = new Hashtable();
+        //private List<string> excepctionType = new List<string> { ".alz", ".zip", ".egg", ".exe", "mp4", "mkv", "avi", "mp3", "flv" };
+        private List<int> contentLength = new List<int>();
 
         private CookieContainer cookie;
         public Form1()
@@ -83,6 +94,7 @@ namespace practice0CSharp
         private void getList(string dir)
         {
             downloadList.Items.Clear();
+            resourceNo.Clear();
             if (pageIndex != 0)
                 downloadList.Items.Add("...");
             string responseFromServer = "";
@@ -116,7 +128,18 @@ namespace practice0CSharp
                 parseStr = parseStr.Substring(parseStr.IndexOf(dir) + dir.Length);
                 parseStr = parseStr.Substring(parseStr.IndexOf("\\/") + "\\/".Length);
                 parseStr = parseStr.Substring(0, parseStr.LastIndexOf("\""));
-                responseFromServer = responseFromServer.Substring(responseFromServer.IndexOf("\"priority\":") + "\"priority\":".Length);
+
+                string reNo = null;
+                reNo = responseFromServer.Substring(responseFromServer.IndexOf("\"resourceno\":") + "\"resourceno\":".Length);
+                reNo = reNo.Substring(0, reNo.IndexOf(","));
+                resourceNo[parseStr] = reNo;
+
+                string conLength;
+                conLength = responseFromServer.Substring(responseFromServer.IndexOf("\"getcontentlength\":") + "\"getcontentlength\":".Length);
+                conLength = conLength.Substring(0, conLength.IndexOf(","));
+                contentLength.Add(int.Parse(conLength));
+
+                responseFromServer = responseFromServer.Substring(responseFromServer.IndexOf("}") + 1);
                 downloadList.Items.Add(checkType(parseStr));
             }
 
@@ -127,6 +150,7 @@ namespace practice0CSharp
         private void getList()
         {
             downloadList.Items.Clear();
+            resourceNo.Clear();
             if (pageIndex != 0)
                 downloadList.Items.Add("...");
             string responseFromServer = "";
@@ -146,11 +170,11 @@ namespace practice0CSharp
             System.IO.Stream str = Hwr2.GetRequestStream();
             str.Write(FormData, 0, FormData.Length);
             str.Close();
-           // System.IO.StreamWriter stwr = new System.IO.StreamWriter(str, Encoding.Default);
-           // stwr.Write("userid=" + ID + "&useridx=" + IDX + "&orgresource=" + DIR + "&type=3&depth=0&sort=credate&order=desc&startnum=0&pagingrow=100");
-           // MessageBox.Show("Success!");
-           // stwr.Flush(); stwr.Close(); stwr.Dispose();
-           // str.Flush(); str.Close(); str.Dispose();
+            // System.IO.StreamWriter stwr = new System.IO.StreamWriter(str, Encoding.Default);
+            // stwr.Write("userid=" + ID + "&useridx=" + IDX + "&orgresource=" + DIR + "&type=3&depth=0&sort=credate&order=desc&startnum=0&pagingrow=100");
+            // MessageBox.Show("Success!");
+            // stwr.Flush(); stwr.Close(); stwr.Dispose();
+            // str.Flush(); str.Close(); str.Dispose();
 
 
             using (HttpWebResponse response = (HttpWebResponse)Hwr2.GetResponse())
@@ -171,6 +195,16 @@ namespace practice0CSharp
                             parseStr = parseStr.Substring(parseStr.IndexOf(dir) + dir.Length);
                             parseStr = parseStr.Substring(parseStr.IndexOf("\\/") + "\\/".Length);
                             parseStr = parseStr.Substring(0, parseStr.LastIndexOf("\""));
+
+                            string reNo = null;
+                            reNo = substr(responseFromServer, responseFromServer.IndexOf("\"resourceno\":\"") + "\"resourceno\":\"".Length, responseFromServer.IndexOf("\"resourcetype\":") - 1);
+                            resourceNo[parseStr] = reNo;
+
+                            string conLength;
+                            conLength = responseFromServer.Substring(responseFromServer.IndexOf("\"getcontentlength\":") + "\"getcontentlength\":".Length);
+                            conLength = conLength.Substring(0, conLength.IndexOf(","));
+                            contentLength.Add(int.Parse(conLength));
+
                             responseFromServer = responseFromServer.Substring(responseFromServer.IndexOf("\"priority\":") + "\"priority\":".Length);
                             downloadList.Items.Add(checkType(parseStr));
                         }
@@ -208,7 +242,7 @@ namespace practice0CSharp
                 pageIndex--;
                 DIR = DIR.Substring(0, DIR.Length - 1);
                 DIR = substr(DIR, 0, DIR.LastIndexOf("/"));
-                
+
                 getList();
             }
             else if (select[0] == '[' && select[select.Length - 1] == ']')
@@ -408,7 +442,7 @@ namespace practice0CSharp
                 filename = filename.Substring(filename.LastIndexOf("/") + 1);
                 string fileAtime = files[0].LastWriteTime.ToString("s") + "+09:00";         // Existing File LastModified
                 string fileBtime = ((JsonStringValue)((JsonObjectCollection)col["resultvalue"])[1]).Value;          // New File LastModified
-                switch (MessageBox.Show("이 위치에 같은 이름의 파일이 있습니다." + Environment.NewLine + "기존 파일을 덮어쓰시겠습니까?" + Environment.NewLine + "이름 : " + filename + Environment.NewLine + "신규 : " +fileAtime + Environment.NewLine + "기존 : " + fileBtime, "업로드", MessageBoxButtons.YesNo))
+                switch (MessageBox.Show("이 위치에 같은 이름의 파일이 있습니다." + Environment.NewLine + "기존 파일을 덮어쓰시겠습니까?" + Environment.NewLine + "이름 : " + filename + Environment.NewLine + "신규 : " + fileAtime + Environment.NewLine + "기존 : " + fileBtime, "업로드", MessageBoxButtons.YesNo))
                 {
                     case System.Windows.Forms.DialogResult.Yes:
                         uploadFiles(true);     //overwrite = T
@@ -503,7 +537,7 @@ namespace practice0CSharp
             ReqBody[25] = "Content-Disposition: form-data; name=\"Filedata\"; filename=\"" + files[0].Name + "\"";
             ReqBody[26] = "Content-Type: " + MimeMapping.GetMimeMapping(uploadList.Items[0].ToString());
             ReqBody[27] = "";
-            
+
             string dataA = String.Join("\r\n", ReqBody) + "\r\n";
             buffer = System.Text.Encoding.UTF8.GetBytes(dataA);
 
@@ -563,10 +597,27 @@ namespace practice0CSharp
 
         private void downloadList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (downloadList.SelectedIndex != -1 && downloadList.SelectedItem.ToString()!="...")
+            if (downloadList.SelectedIndex != -1 && downloadList.SelectedItem.ToString() != "...")
             {
                 downloadbt.Enabled = true;
                 removeFilebt.Enabled = true;
+                string getstring = downloadList.SelectedItem.ToString();
+                if (getstring[0] == '[' && getstring[getstring.Length - 1] == ']')
+                    previewbt.Enabled = false;
+                else
+                    previewbt.Enabled = true;
+                if (prev != null)
+                    if (getstring[0] == '[' && getstring[getstring.Length - 1] == ']')
+                        prev.setimageNull();
+                    else
+                    {
+                        if (contentLength[downloadList.SelectedIndex] > 5242880)    //5MB
+                            {
+                                prev.setimageNull();
+                                return;
+                            }
+                        previewbt_Click(new object(), new EventArgs());
+                    }
             }
             else
             {
@@ -574,7 +625,6 @@ namespace practice0CSharp
                 removeFilebt.Enabled = false;
             }
         }
-
         private void downloadbt_Click(object sender, EventArgs e)
         {
             listBox1_DoubleClick(new object(), new EventArgs());
@@ -626,7 +676,7 @@ namespace practice0CSharp
 
         private void timer2_Tick(object sender, EventArgs e)
         {
-            if (downloadlb.Location.Y >= 558)
+            if (downloadlb.Location.X >= 558)
                 timer2.Stop();
             downloadlb.Location = new Point(downloadlb.Location.X + 1, downloadlb.Location.Y);
         }
@@ -674,10 +724,48 @@ namespace practice0CSharp
 
         private void timer6_Tick(object sender, EventArgs e)
         {
-            if (removelb.Location.Y >= 558)
+            if (removelb.Location.X >= 558)
                 timer6.Stop();
             removelb.Location = new Point(removelb.Location.X + 1, removelb.Location.Y);
         }
+        Preview prev;
+        private void previewbt_Click(object sender, EventArgs e)
+        {
+            string key = getGenerateKey();
+            string filekey = getFileKey(key);
+            string encodestr = HttpUtility.UrlEncode(downloadList.SelectedItem.ToString());
+            HttpWebRequest Hwr2 = (HttpWebRequest)WebRequest.Create("http://files.cloud.naver.com" + DIR + encodestr + "?attachment=2&userid=" + ID + "&useridx=" + IDX + "&NDriveSvcType=NHN/ND-WEB%20Ver"); //&key=" + key + "&filekey=" + filekey);
+            Hwr2.Method = "GET";
+            Hwr2.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
+            Hwr2.CookieContainer = cookie;
+
+            HttpWebResponse response = (HttpWebResponse)Hwr2.GetResponse();
+
+            Stream dataStream = response.GetResponseStream();
+
+            byte[] data = ReadFully(dataStream);
+
+            if (prev == null)
+            {
+                prev = new Preview(this as PrevInterface, data);    //get File Link
+                prev.Show();
+            }
+            else
+                prev.setImage(data);
+            prev.Location = new Point(this.Location.X + 574, this.Location.Y);
+        }
+
+        private void Form1_LocationChanged(object sender, EventArgs e)
+        {
+            if (prev != null)
+                prev.Location = new Point(this.Location.X + 574, this.Location.Y);
+        }
+
+        public void formClose()
+        {
+            prev = null;
+        }
+
 
     }
 }
