@@ -40,7 +40,7 @@ namespace practice0CSharp
         private bool drop = false;
         private Hashtable resourceNo = new Hashtable();
         //private List<string> excepctionType = new List<string> { ".alz", ".zip", ".egg", ".exe", "mp4", "mkv", "avi", "mp3", "flv" };
-        private List<int> contentLength = new List<int>();
+        //private List<int> contentLength = new List<int>();
 
         private CookieContainer cookie;
         public Form1()
@@ -134,10 +134,10 @@ namespace practice0CSharp
                 reNo = reNo.Substring(0, reNo.IndexOf(","));
                 resourceNo[parseStr] = reNo;
 
-                string conLength;
-                conLength = responseFromServer.Substring(responseFromServer.IndexOf("\"getcontentlength\":") + "\"getcontentlength\":".Length);
-                conLength = conLength.Substring(0, conLength.IndexOf(","));
-                contentLength.Add(int.Parse(conLength));
+                //string conLength;
+                //conLength = responseFromServer.Substring(responseFromServer.IndexOf("\"getcontentlength\":") + "\"getcontentlength\":".Length);
+                //conLength = conLength.Substring(0, conLength.IndexOf(","));
+                //contentLength.Add(int.Parse(conLength));
 
                 responseFromServer = responseFromServer.Substring(responseFromServer.IndexOf("}") + 1);
                 downloadList.Items.Add(checkType(parseStr));
@@ -200,10 +200,10 @@ namespace practice0CSharp
                             reNo = substr(responseFromServer, responseFromServer.IndexOf("\"resourceno\":\"") + "\"resourceno\":\"".Length, responseFromServer.IndexOf("\"resourcetype\":") - 1);
                             resourceNo[parseStr] = reNo;
 
-                            string conLength;
-                            conLength = responseFromServer.Substring(responseFromServer.IndexOf("\"getcontentlength\":") + "\"getcontentlength\":".Length);
-                            conLength = conLength.Substring(0, conLength.IndexOf(","));
-                            contentLength.Add(int.Parse(conLength));
+                            //string conLength;
+                            //conLength = responseFromServer.Substring(responseFromServer.IndexOf("\"getcontentlength\":") + "\"getcontentlength\":".Length);
+                            //conLength = conLength.Substring(0, conLength.IndexOf(","));
+                            //contentLength.Add(int.Parse(conLength));
 
                             responseFromServer = responseFromServer.Substring(responseFromServer.IndexOf("\"priority\":") + "\"priority\":".Length);
                             downloadList.Items.Add(checkType(parseStr));
@@ -611,12 +611,13 @@ namespace practice0CSharp
                         prev.setimageNull();
                     else
                     {
-                        if (contentLength[downloadList.SelectedIndex] > 5242880)    //5MB
-                            {
-                                prev.setimageNull();
-                                return;
-                            }
-                        previewbt_Click(new object(), new EventArgs());
+                        string select = downloadList.SelectedItem.ToString();
+                        if (MimeMapping.GetMimeMapping(select).IndexOf("image") != -1)
+                            previewFile(0);
+                        else if (MimeMapping.GetMimeMapping(select).IndexOf("text") != -1)
+                            previewFile(1);
+                        else
+                            prev.setimageNull();
                     }
             }
             else
@@ -731,6 +732,14 @@ namespace practice0CSharp
         Preview prev;
         private void previewbt_Click(object sender, EventArgs e)
         {
+            string select = downloadList.SelectedItem.ToString();
+            if (MimeMapping.GetMimeMapping(select).IndexOf("image") != -1)
+                previewFile(0);
+            else if (MimeMapping.GetMimeMapping(select).IndexOf("text") != -1)
+                previewFile(1);
+        }
+        private void previewFile(int type)  //0 - image, 1 - text, -1 - error
+        {
             string key = getGenerateKey();
             string filekey = getFileKey(key);
             string encodestr = HttpUtility.UrlEncode(downloadList.SelectedItem.ToString());
@@ -740,21 +749,32 @@ namespace practice0CSharp
             Hwr2.CookieContainer = cookie;
 
             HttpWebResponse response = (HttpWebResponse)Hwr2.GetResponse();
+            //MessageBox.Show(response.ContentType);
 
             Stream dataStream = response.GetResponseStream();
 
-            byte[] data = ReadFully(dataStream);
-
-            if (prev == null)
+            if (type == 0)
             {
-                prev = new Preview(this as PrevInterface, data);    //get File Link
-                prev.Show();
+                byte[] data = ReadFully(dataStream);
+                if (prev == null)
+                    prev = new Preview(this as PrevInterface, data);    //get File Link
+                else
+                    prev.setImage(data);
             }
-            else
-                prev.setImage(data);
+            else if(type == 1)
+            {
+                StreamReader reader = new StreamReader(dataStream, Encoding.UTF8);
+                string data = reader.ReadToEnd();
+                if (prev == null)
+                    prev = new Preview(this as PrevInterface, data);
+                else
+                    prev.setText(data);
+            }
+            prev.Show();
             prev.Location = new Point(this.Location.X + 574, this.Location.Y);
-        }
 
+            
+        }
         private void Form1_LocationChanged(object sender, EventArgs e)
         {
             if (prev != null)

@@ -14,6 +14,7 @@ namespace practice0CSharp
     public partial class Preview : Form
     {
         private PrevInterface frm = null;
+        
         public Preview(PrevInterface frm, byte[] fileBytes)
         {
             InitializeComponent();
@@ -22,6 +23,15 @@ namespace practice0CSharp
             if(pictureBox1.Image != null)
                 pictureBox1.Location = new Point((456 - pictureBox1.Image.Width) / 2, (324 - pictureBox1.Image.Height) / 2);
         }
+
+        public Preview(PrevInterface frm, string data)
+        {
+            InitializeComponent();
+            this.frm = frm;
+            textBox1.Text = data;
+            textBox1.Visible = true;
+        }
+
         public Bitmap ByteToImage(byte[] blob)
         {
             MemoryStream mStream = new MemoryStream();
@@ -60,6 +70,7 @@ namespace practice0CSharp
         }
         public void setImage(byte[] fileBytes)
         {
+            textBox1.Visible = false;
             try
             {
                 pictureBox1.Image = ByteToImage(fileBytes);
@@ -71,6 +82,12 @@ namespace practice0CSharp
             }
         }
 
+        public void setText(string data)
+        {
+            textBox1.Text = data;
+            textBox1.Visible = true;
+        }
+
         private void Preview_FormClosing(object sender, FormClosingEventArgs e)
         {
             frm.formClose();
@@ -79,6 +96,7 @@ namespace practice0CSharp
 
         internal void setimageNull()
         {
+            textBox1.Visible = false;
             pictureBox2.Visible = true;
         }
     }
