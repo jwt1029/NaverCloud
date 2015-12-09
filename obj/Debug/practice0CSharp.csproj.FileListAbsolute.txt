@@ -41,3 +41,4 @@ C:\Users\XenoAron\Documents\GitHub\NaverCloud\obj\Debug\practice0CSharp.Properti
 C:\Users\XenoAron\Documents\GitHub\NaverCloud\obj\Debug\practice0CSharp.csproj.GenerateResource.Cache
 C:\Users\XenoAron\Documents\GitHub\NaverCloud\bin\Debug\System.Net.Json.dll
 C:\Users\XenoAron\Documents\GitHub\NaverCloud\obj\Debug\practice0CSharp.Preview.resources
+C:\Users\XenoAron\Documents\GitHub\NaverCloud\obj\Debug\practice0CSharp.Upload.resources

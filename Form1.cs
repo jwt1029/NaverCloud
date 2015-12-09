@@ -19,6 +19,8 @@ namespace practice0CSharp
     public interface IMyInterface
     {
         void getCookie(CookieContainer cookies);
+        void getUploadState(bool result);
+        void getUploadState(string folderName);
     }
 
     public interface PrevInterface
@@ -389,7 +391,9 @@ namespace practice0CSharp
 
         private void uploadbt_Click(object sender, EventArgs e)
         {
-            switch (MessageBox.Show(uploadList.Items.Count + "개의 파일을 " + DIR + "로 업로드 하시겠습니까?", "업로드", MessageBoxButtons.YesNo))
+            Upload upload = new Upload(this as IMyInterface, uploadList.Items.Count, DIR);
+            upload.Show();
+            /*switch (MessageBox.Show(uploadList.Items.Count + "개의 파일을 " + DIR + "로 업로드 하시겠습니까?", "업로드", MessageBoxButtons.YesNo))
             {
                 case System.Windows.Forms.DialogResult.Yes:
                     int cnt = uploadList.Items.Count;
@@ -400,12 +404,13 @@ namespace practice0CSharp
                         downloadbt.Enabled = false;
                     }
                     timer3.Start();
+                    getList();
                     break;
                 case System.Windows.Forms.DialogResult.No:
                     break;
 
             }
-            getList();
+             */
         }
 
         private bool uploadcheck()
@@ -648,7 +653,12 @@ namespace practice0CSharp
 
             System.IO.Stream str = Hwr2.GetRequestStream();
             System.IO.StreamWriter stwr = new System.IO.StreamWriter(str, new UTF8Encoding(false));
-            string encodestr = HttpUtility.UrlEncode(DIR + downloadList.SelectedItem.ToString());
+            string encodestr;
+            string downloadFile = downloadList.SelectedItem.ToString();
+            if (downloadFile[0] == '[' && downloadFile[downloadFile.Length - 1] == ']')
+                encodestr = HttpUtility.UrlEncode(DIR + downloadFile.Substring(1,downloadFile.Length - 2) + "/");
+            else
+                encodestr = HttpUtility.UrlEncode(DIR + downloadList.SelectedItem.ToString());
             stwr.Write("userid=" + ID + "&useridx=" + IDX + "&ownerid=&owneridx=&owneridcnum=&orgresource=" + encodestr + "&forcedelete=F");
             stwr.Flush(); stwr.Close(); stwr.Dispose();
             str.Flush(); str.Close(); str.Dispose();
@@ -663,6 +673,7 @@ namespace practice0CSharp
             timer5.Start();
             getList();
             previewbt.Enabled = false;
+            removebt.Enabled = true;
         }
         int cntA;
         private void timer1_Tick(object sender, EventArgs e)
@@ -767,7 +778,7 @@ namespace practice0CSharp
                 else
                     prev.setImage(data);
             }
-            else if(type == 1)
+            else if (type == 1)
             {
                 StreamReader reader = new StreamReader(dataStream, Encoding.UTF8);
                 string data = reader.ReadToEnd();
@@ -779,7 +790,7 @@ namespace practice0CSharp
             prev.Show();
             prev.Location = new Point(this.Location.X + 574, this.Location.Y);
 
-            
+
         }
         private void Form1_LocationChanged(object sender, EventArgs e)
         {
@@ -792,6 +803,58 @@ namespace practice0CSharp
             prev = null;
         }
 
+        public void getUploadState(bool result)
+        {
+            if(result)
+            {
+                int cnt = uploadList.Items.Count;
+                for (int i = 0; i < cnt; i++) //
+                {
+                    if (!uploadcheck())
+                        break;
+                    downloadbt.Enabled = false;
+                }
+                timer3.Start();
+                getList();
+            }
+        }
 
+        public void getUploadState(string folderName)
+        {
+            string responseFromServer = "";
+            HttpWebRequest Hwr2 = (HttpWebRequest)WebRequest.Create("http://files.cloud.naver.com/MakeDirectory.ndrive");
+            Hwr2.Method = "POST";
+            Hwr2.Referer = "http://cloud.naver.com/";
+            Hwr2.UserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36";
+            Hwr2.CookieContainer = cookie;
+
+            System.IO.Stream str = Hwr2.GetRequestStream();
+            System.IO.StreamWriter stwr = new System.IO.StreamWriter(str, new UTF8Encoding(false));
+            //string encodestr = HttpUtility.UrlEncode(DIR + downloadList.SelectedItem.ToString());
+            stwr.Write("userid=" + ID + "&useridx=" + IDX + "&dstresource=/" + folderName + "/");
+            stwr.Flush(); stwr.Close(); stwr.Dispose();
+            str.Flush(); str.Close(); str.Dispose();
+
+
+            HttpWebResponse response = (HttpWebResponse)Hwr2.GetResponse();
+
+            Stream dataStream = response.GetResponseStream();
+            StreamReader reader = new StreamReader(dataStream, Encoding.UTF8);
+
+            responseFromServer = reader.ReadToEnd();
+
+
+            DIR += folderName + "/";
+            pageIndex++;
+            int cnt = uploadList.Items.Count;
+            for (int i = 0; i < cnt; i++) //
+            {
+                if (!uploadcheck())
+                    break;
+                downloadbt.Enabled = false;
+            }
+            timer3.Start();
+            getList();
+        }
     }
 }
