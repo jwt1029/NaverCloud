@@ -1,5 +1,4 @@
-﻿#define TEST
-
+﻿
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -390,22 +389,23 @@ namespace practice0CSharp
 
         private void uploadbt_Click(object sender, EventArgs e)
         {
-
             switch (MessageBox.Show(uploadList.Items.Count + "개의 파일을 " + DIR + "로 업로드 하시겠습니까?", "업로드", MessageBoxButtons.YesNo))
             {
                 case System.Windows.Forms.DialogResult.Yes:
-                    if (!uploadcheck())
-                        break;
-                    getList();
-                    downloadbt.Enabled = false;
-                    files.Clear();
-                    uploadLinks.Clear();
+                    int cnt = uploadList.Items.Count;
+                    for (int i = 0; i < cnt; i++) //
+                    {
+                        if (!uploadcheck())
+                            break;
+                        downloadbt.Enabled = false;
+                    }
                     timer3.Start();
                     break;
                 case System.Windows.Forms.DialogResult.No:
                     break;
 
             }
+            getList();
         }
 
         private bool uploadcheck()
@@ -446,6 +446,9 @@ namespace practice0CSharp
                 {
                     case System.Windows.Forms.DialogResult.Yes:
                         uploadFiles(true);     //overwrite = T
+                        files.RemoveAt(0);
+                        uploadLinks.RemoveAt(0);
+                        uploadList.Items.RemoveAt(0);
                         return true;
                     case System.Windows.Forms.DialogResult.No:
                         return false;
@@ -453,6 +456,9 @@ namespace practice0CSharp
                 }
             }
             uploadFiles(false);     //overwrite = F
+            files.RemoveAt(0);
+            uploadLinks.RemoveAt(0);
+            uploadList.Items.RemoveAt(0);
             return true;
         }
 
@@ -497,7 +503,6 @@ namespace practice0CSharp
             }
             //Htmlsrc html = new Htmlsrc(responseFromServer);
             //html.Show();
-            uploadList.Items.Clear();
         }
 
         private byte[] setRequestBody(bool overwrite)
@@ -657,6 +662,7 @@ namespace practice0CSharp
             responseFromServer = reader.ReadToEnd();
             timer5.Start();
             getList();
+            previewbt.Enabled = false;
         }
         int cntA;
         private void timer1_Tick(object sender, EventArgs e)
