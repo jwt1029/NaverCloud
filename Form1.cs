@@ -40,6 +40,7 @@ namespace practice0CSharp
         private List<FileInfo> files = new List<FileInfo>();
         private bool drop = false;
         private Hashtable resourceNo = new Hashtable();
+        private List<DirectoryInfo> directories = new List<DirectoryInfo>();
         //private List<string> excepctionType = new List<string> { ".alz", ".zip", ".egg", ".exe", "mp4", "mkv", "avi", "mp3", "flv" };
         //private List<int> contentLength = new List<int>();
 
@@ -297,14 +298,14 @@ namespace practice0CSharp
 
             progress.setProgressText(fileName);
             worker.RunWorkerAsync(parameta);
-            
+
         }
 
         private void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             progress.Close();
             progress = null;
-            if(e.Error != null)
+            if (e.Error != null)
             {
                 MessageBox.Show(e.Error.Message);
                 return;
@@ -442,8 +443,13 @@ namespace practice0CSharp
             string[] directory = (string[])e.Data.GetData(DataFormats.FileDrop);
             foreach (string fileName in directory)
             {
-                files.Add(new FileInfo(fileName));
-                uploadLinks.Add(fileName);
+                if (Directory.Exists(fileName))
+                    directories.Add(new DirectoryInfo(fileName));
+                else
+                {
+                    files.Add(new FileInfo(fileName));
+                    uploadLinks.Add(fileName);
+                }
                 uploadList.Items.Add(fileName.Substring(fileName.LastIndexOf('\\') + 1));
             }
             uploadbt.Enabled = true;
@@ -453,29 +459,15 @@ namespace practice0CSharp
 
         private void uploadbt_Click(object sender, EventArgs e)
         {
-            upload = new Upload(this as IMyInterface, uploadList.Items.Count, DIR);
+            if (directories.Count == 0)
+                upload = new Upload(this as IMyInterface, uploadList.Items.Count, DIR);
+            else
+                upload = new Upload(this as IMyInterface, uploadList.Items.Count - directories.Count, directories.Count, DIR);
             upload.Show();
-            /*switch (MessageBox.Show(uploadList.Items.Count + "개의 파일을 " + DIR + "로 업로드 하시겠습니까?", "업로드", MessageBoxButtons.YesNo))
-            {
-                case System.Windows.Forms.DialogResult.Yes:
-                    int cnt = uploadList.Items.Count;
-                    for (int i = 0; i < cnt; i++) //
-                    {
-                        if (!uploadcheck())
-                            break;
-                        downloadbt.Enabled = false;
-                    }
-                    timer3.Start();
-                    getList();
-                    break;
-                case System.Windows.Forms.DialogResult.No:
-                    break;
 
-            }
-             */
         }
 
-        private bool uploadcheck()
+        private bool uploadFilecheck()
         {
             string responseFromServer = "";
             HttpWebRequest Hwr2 = (HttpWebRequest)WebRequest.Create("http://files.cloud.naver.com/CheckUpload.ndrive");
@@ -486,7 +478,7 @@ namespace practice0CSharp
 
             System.IO.Stream str = Hwr2.GetRequestStream();
             System.IO.StreamWriter stwr = new System.IO.StreamWriter(str, new UTF8Encoding(false));
-            string encodestr = HttpUtility.UrlEncode(DIR + uploadList.Items[0].ToString());
+            string encodestr = HttpUtility.UrlEncode(DIR + files[0].Name);
             string dateEncode = HttpUtility.UrlEncode(files[0].LastWriteTime.ToString("s") + "+09:00");
             stwr.Write("userid=" + ID + "&useridx=" + IDX + "&uploadsize=" + files[0].Length.ToString() + "&overwrite=F&getlastmodified=" + dateEncode + "&dstresource=" + encodestr);
             stwr.Flush(); stwr.Close(); stwr.Dispose();
@@ -514,10 +506,19 @@ namespace practice0CSharp
                     case System.Windows.Forms.DialogResult.Yes:
                         uploadFiles(true);     //overwrite = T
                         files.RemoveAt(0);
-                        uploadLinks.RemoveAt(0);
-                        uploadList.Items.RemoveAt(0);
+                        if (uploadLinks.Count != 0)
+                        {
+                            uploadLinks.RemoveAt(0);
+                            uploadList.Items.RemoveAt(0);
+                        }
                         return true;
                     case System.Windows.Forms.DialogResult.No:
+                        files.RemoveAt(0);
+                        uploadLinks.RemoveAt(0);
+                        if (uploadList.Items.Count != 0)
+                        {
+                            uploadList.Items.RemoveAt(0);
+                        }
                         return false;
 
                 }
@@ -525,7 +526,10 @@ namespace practice0CSharp
             uploadFiles(false);     //overwrite = F
             files.RemoveAt(0);
             uploadLinks.RemoveAt(0);
-            uploadList.Items.RemoveAt(0);
+            if (uploadList.Items.Count != 0)
+            {
+                uploadList.Items.RemoveAt(0);
+            }
             return true;
         }
 
@@ -533,7 +537,7 @@ namespace practice0CSharp
         {
             byte[] reqBody = setRequestBody(overwrite);
             string responseFromServer = "";
-            string name = uploadList.Items[0].ToString();
+            string name = files[0].Name;
             //string encodestr = HttpUtility.UrlEncode(DIR + name);
             HttpWebRequest Hwr2 = (HttpWebRequest)WebRequest.Create("http://files.cloud.naver.com" + DIR + name);
             Hwr2.Method = "POST";
@@ -588,7 +592,7 @@ namespace practice0CSharp
             ReqBody[8] = boundary;
             ReqBody[9] = "Content-Disposition: form-data; name=\"Filename\"";
             ReqBody[10] = "";
-            ReqBody[11] = uploadList.Items[0].ToString();
+            ReqBody[11] = files[0].Name;
             ReqBody[12] = boundary;
             ReqBody[13] = "Content-Disposition: form-data; name=\"overwrite\"";
             ReqBody[14] = "";
@@ -607,7 +611,7 @@ namespace practice0CSharp
             ReqBody[23] = files[0].LastWriteTime.ToString("s") + "+09:00";
             ReqBody[24] = boundary;
             ReqBody[25] = "Content-Disposition: form-data; name=\"Filedata\"; filename=\"" + files[0].Name + "\"";
-            ReqBody[26] = "Content-Type: " + MimeMapping.GetMimeMapping(uploadList.Items[0].ToString());
+            ReqBody[26] = "Content-Type: " + MimeMapping.GetMimeMapping(files[0].Name);
             ReqBody[27] = "";
 
             string dataA = String.Join("\r\n", ReqBody) + "\r\n";
@@ -878,16 +882,70 @@ namespace practice0CSharp
             upload.Close();
             if (result)
             {
-                int cnt = uploadList.Items.Count;
+                int cnt = files.Count;
                 for (int i = 0; i < cnt; i++) //
                 {
-                    if (!uploadcheck())
-                        break;
                     downloadbt.Enabled = false;
+                    if (!uploadFilecheck())
+                        continue;
+                }
+                cnt = directories.Count;
+                for (int i = 0; i < cnt; i++)
+                {
+                    downloadbt.Enabled = false;
+                    if (!uploadFolder())
+                        continue;
                 }
                 timer3.Start();
                 getList();
             }
+        }
+
+        private bool uploadFolder()
+        {
+            int cnt = directories.Count;
+            for (int i = 0; i < cnt; i++)
+            {
+                createFolder(directories[i]);
+                files = directories[i].GetFiles().ToList<FileInfo>();
+                int fcnt = files.Count;
+                downloadbt.Enabled = false;
+                DIR += directories[i].Name + "/";
+                pageIndex++;
+                for (int j = 0; j < fcnt; j++)
+                {
+                    uploadLinks.Add(files[0].FullName);
+                    uploadFilecheck();
+                }
+                directories.RemoveAt(0);
+            }
+            return true;
+        }
+
+        private void createFolder(DirectoryInfo dir)
+        {
+            string responseFromServer = "";
+            HttpWebRequest Hwr2 = (HttpWebRequest)WebRequest.Create("http://files.cloud.naver.com/MakeDirectory.ndrive");
+            Hwr2.Method = "POST";
+            Hwr2.Referer = "http://cloud.naver.com/";
+            Hwr2.UserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36";
+            Hwr2.CookieContainer = cookie;
+
+            System.IO.Stream str = Hwr2.GetRequestStream();
+            System.IO.StreamWriter stwr = new System.IO.StreamWriter(str, new UTF8Encoding(false));
+            //string encodestr = HttpUtility.UrlEncode(DIR + downloadList.SelectedItem.ToString());
+            stwr.Write("userid=" + ID + "&useridx=" + IDX + "&dstresource=" + DIR + dir.Name + "/");
+            stwr.Flush(); stwr.Close(); stwr.Dispose();
+            str.Flush(); str.Close(); str.Dispose();
+
+
+            HttpWebResponse response = (HttpWebResponse)Hwr2.GetResponse();
+
+            Stream dataStream = response.GetResponseStream();
+            StreamReader reader = new StreamReader(dataStream, Encoding.UTF8);
+
+            responseFromServer = reader.ReadToEnd();
+
         }
 
         public void getUploadState(string folderName)
@@ -934,11 +992,11 @@ namespace practice0CSharp
             DIR += folderName + "/";
             pageIndex++;
             int cnt = uploadList.Items.Count;
+            downloadbt.Enabled = false;
             for (int i = 0; i < cnt; i++) //
             {
-                if (!uploadcheck())
-                    break;
-                downloadbt.Enabled = false;
+                if (!uploadFilecheck())
+                    continue;
             }
             timer3.Start();
             getList();

@@ -12,8 +12,8 @@ namespace practice0CSharp
 {
     public partial class Upload : Form
     {
-        private int cnt;
-        private string DIR;
+        private string front;
+        private string back;
         private IMyInterface frm = null;
         private string[] invList = new string[] { "<", ">", ":", "\"", "/", "|", "?", "*" };
 
@@ -21,16 +21,23 @@ namespace practice0CSharp
         {
             InitializeComponent();
             this.frm = frm;
-            this.cnt = cnt;
-            this.DIR = DIR;
-            question.Text = Environment.NewLine + Environment.NewLine + cnt + "개의 파일을 " + DIR + "로 업로드 하시겠습니까?";
+            front = Environment.NewLine + Environment.NewLine + cnt + "개의 파일을 " + DIR;
+            question.Text = front + "로 업로드 하시겠습니까?";
+        }
+
+        public Upload(IMyInterface frm, int cnt, int dircnt, string DIR)
+        {
+            InitializeComponent();
+            this.frm = frm;
+            front = Environment.NewLine + Environment.NewLine + cnt + "개의 파일과 " + dircnt + "개의 폴더를 " + DIR;
+            question.Text = front + "로 업로드 하시겠습니까?";
         }
 
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
         {
             if (radioButton1.Checked)
             {
-                question.Text = Environment.NewLine + Environment.NewLine + cnt + "개의 파일을 " + DIR + folderName.Text + "로 업로드 하시겠습니까?";
+                question.Text = front + folderName.Text + "로 업로드 하시겠습니까?";
                 for (int i = 0; i < 20; i++)
                     this.Size = new Size(this.Size.Width, this.Size.Height + 1);
                 for (int i = 0; i < 10; i++)
@@ -43,7 +50,7 @@ namespace practice0CSharp
             }
             else
             {
-                question.Text = Environment.NewLine + Environment.NewLine + cnt + "개의 파일을 " + DIR + "로 업로드 하시겠습니까?";
+                question.Text = front + "로 업로드 하시겠습니까?";
                 label1.Visible = false;
                 folderName.Visible = false;
                 for (int i = 0; i < 20; i++)
@@ -80,7 +87,7 @@ namespace practice0CSharp
                     folderName.Text = folderName.Text.Substring(0, folderName.Text.Length - 1);
                     MessageBox.Show("<>:\"/|?* 는 폴더이름으로 사용할 수 없습니다");
                 }
-            question.Text = Environment.NewLine + Environment.NewLine + cnt + "개의 파일을 " + DIR + folderName.Text + "로 업로드 하시겠습니까?";
+            question.Text = front + folderName.Text + "로 업로드 하시겠습니까?";
         }
     }
 }
