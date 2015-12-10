@@ -549,7 +549,14 @@ namespace practice0CSharp
             //byte[] buffer = System.Text.Encoding.UTF8.GetBytes(reqBody);
             //파일 이어붙이기 StringA.ToByte + FileByte + StringB.ToByte
             System.IO.Stream str = Hwr2.GetRequestStream();
-            str.Write(reqBody, 0, reqBody.Length);
+            int cnt = 0;
+            int prc = 0;
+            while (true)
+            {
+                //cnt += 10400;               
+                long a = str.Length;            // HERE!!!ㅜㅜㅜ
+                str.Write(reqBody, 0, 3000);
+            }
             using (System.IO.StreamWriter stwr = new System.IO.StreamWriter(str, Encoding.UTF8))
             {
                 //stwr.Write(reqBody);
