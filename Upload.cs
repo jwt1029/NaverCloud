@@ -15,10 +15,14 @@ namespace practice0CSharp
         private int cnt;
         private string DIR;
         private IMyInterface frm = null;
+        private string[] invList = new string[] { "<", ">", ":", "\"", "/", "|", "?", "*" };
+
         public Upload(IMyInterface frm, int cnt, string DIR)
         {
             InitializeComponent();
             this.frm = frm;
+            this.cnt = cnt;
+            this.DIR = DIR;
             question.Text = Environment.NewLine + Environment.NewLine + cnt + "개의 파일을 " + DIR + "로 업로드 하시겠습니까?";
         }
 
@@ -26,6 +30,7 @@ namespace practice0CSharp
         {
             if (radioButton1.Checked)
             {
+                question.Text = Environment.NewLine + Environment.NewLine + cnt + "개의 파일을 " + DIR + folderName.Text + "로 업로드 하시겠습니까?";
                 for (int i = 0; i < 20; i++)
                     this.Size = new Size(this.Size.Width, this.Size.Height + 1);
                 for (int i = 0; i < 10; i++)
@@ -38,6 +43,7 @@ namespace practice0CSharp
             }
             else
             {
+                question.Text = Environment.NewLine + Environment.NewLine + cnt + "개의 파일을 " + DIR + "로 업로드 하시겠습니까?";
                 label1.Visible = false;
                 folderName.Visible = false;
                 for (int i = 0; i < 20; i++)
@@ -64,7 +70,17 @@ namespace practice0CSharp
                     frm.getUploadState(folderName.Text);
             else
                 frm.getUploadState(true);
-            this.Close();
+        }
+
+        private void folderName_TextChanged(object sender, EventArgs e)
+        {
+            foreach (string str in invList)
+                if (folderName.Text.IndexOf(str) != -1)
+                {
+                    folderName.Text = folderName.Text.Substring(0, folderName.Text.Length - 1);
+                    MessageBox.Show("<>:\"/|?* 는 폴더이름으로 사용할 수 없습니다");
+                }
+            question.Text = Environment.NewLine + Environment.NewLine + cnt + "개의 파일을 " + DIR + folderName.Text + "로 업로드 하시겠습니까?";
         }
     }
 }

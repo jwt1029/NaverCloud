@@ -99,6 +99,7 @@
             this.folderName.Size = new System.Drawing.Size(219, 21);
             this.folderName.TabIndex = 4;
             this.folderName.Visible = false;
+            this.folderName.TextChanged += new System.EventHandler(this.folderName_TextChanged);
             // 
             // label1
             // 

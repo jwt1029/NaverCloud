@@ -259,9 +259,15 @@ namespace practice0CSharp
             removeFilebt.Enabled = false;
 
         }
-
+        private BackgroundWorker worker;
+        showDownloadProgress progress = null;
         private void downloadFile(string fileName)
         {
+            if (progress == null)
+            {
+                progress = new showDownloadProgress();
+                progress.Show();
+            }
             string key = getGenerateKey();
             string filekey = getFileKey(key);
             string encodestr = HttpUtility.UrlEncode(fileName);
@@ -271,16 +277,70 @@ namespace practice0CSharp
             Hwr2.CookieContainer = cookie;
 
             HttpWebResponse response = (HttpWebResponse)Hwr2.GetResponse();
-
+            long length = response.ContentLength;
             Stream dataStream = response.GetResponseStream();
 
-            byte[] data = ReadFully(dataStream);
+            //byte[] data = ReadFully(dataStream);
             if (!InitializePath.Exists)
                 InitializePath.Create();
-            File.WriteAllBytes(InitializePath.ToString() + "\\" + fileName, data);
-            dataStream.Flush();
+            worker = new BackgroundWorker();
+            worker.WorkerReportsProgress = true;
+            worker.WorkerSupportsCancellation = true;
+            worker.DoWork += new DoWorkEventHandler(worker_DoWork);
+            worker.ProgressChanged += new ProgressChangedEventHandler(worker_ProgressChanged);
+            worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(worker_RunWorkerCompleted);
+
+            List<object> parameta = new List<object>();
+            parameta.Add(dataStream);
+            parameta.Add(fileName);
+            parameta.Add(length);
+
+            progress.setProgressText(fileName);
+            worker.RunWorkerAsync(parameta);
+            
+        }
+
+        private void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            progress.Close();
+            progress = null;
+            if(e.Error != null)
+            {
+                MessageBox.Show(e.Error.Message);
+                return;
+            }
             timer1.Start();
-            //MessageBox.Show("Download Complete!");
+        }
+
+        private void worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            progress.setProgressValue(e.ProgressPercentage);
+        }
+
+        private void worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            long cnt = 0;
+            int pct = 0;
+            long length = (long)((List<object>)e.Argument)[2];
+            Stream dataStream = (Stream)((List<object>)e.Argument)[0];
+            //long size = dataStream.Length;
+            string fileName = ((List<object>)e.Argument)[1].ToString();
+            using (FileStream DISKIO = new FileStream(InitializePath.ToString() + "\\" + fileName, FileMode.OpenOrCreate, FileAccess.Write))
+            {
+                byte[] buff = new byte[102400];
+                int c = 0;
+                while ((c = dataStream.Read(buff, 0, 10400)) > 0)
+                {
+                    DISKIO.Write(buff, 0, c);
+                    DISKIO.Flush();
+                    cnt += c;
+                    pct = (int)((cnt * 1000) / length);
+                    if (pct == -1)
+                        return;
+                    worker.ReportProgress(pct);
+                }
+                dataStream.Close();
+            }
         }
 
         public static byte[] ReadFully(Stream input)
@@ -389,9 +449,11 @@ namespace practice0CSharp
             uploadbt.Enabled = true;
         }
 
+        Upload upload = null;
+
         private void uploadbt_Click(object sender, EventArgs e)
         {
-            Upload upload = new Upload(this as IMyInterface, uploadList.Items.Count, DIR);
+            upload = new Upload(this as IMyInterface, uploadList.Items.Count, DIR);
             upload.Show();
             /*switch (MessageBox.Show(uploadList.Items.Count + "개의 파일을 " + DIR + "로 업로드 하시겠습니까?", "업로드", MessageBoxButtons.YesNo))
             {
@@ -656,7 +718,7 @@ namespace practice0CSharp
             string encodestr;
             string downloadFile = downloadList.SelectedItem.ToString();
             if (downloadFile[0] == '[' && downloadFile[downloadFile.Length - 1] == ']')
-                encodestr = HttpUtility.UrlEncode(DIR + downloadFile.Substring(1,downloadFile.Length - 2) + "/");
+                encodestr = HttpUtility.UrlEncode(DIR + downloadFile.Substring(1, downloadFile.Length - 2) + "/");
             else
                 encodestr = HttpUtility.UrlEncode(DIR + downloadList.SelectedItem.ToString());
             stwr.Write("userid=" + ID + "&useridx=" + IDX + "&ownerid=&owneridx=&owneridcnum=&orgresource=" + encodestr + "&forcedelete=F");
@@ -780,8 +842,15 @@ namespace practice0CSharp
             }
             else if (type == 1)
             {
-                StreamReader reader = new StreamReader(dataStream, Encoding.UTF8);
-                string data = reader.ReadToEnd();
+                byte[] d = ReadFully(dataStream);
+                string data;
+                if (d[0] == 239 && d[1] == 187 && d[2] == 191)
+                    data = System.Text.Encoding.UTF8.GetString(d);
+                else
+                {
+                    data = System.Text.Encoding.Default.GetString(d);
+                    StreamReader reader = new StreamReader(dataStream, Encoding.Default, false);
+                }
                 if (prev == null)
                     prev = new Preview(this as PrevInterface, data);
                 else
@@ -792,6 +861,7 @@ namespace practice0CSharp
 
 
         }
+
         private void Form1_LocationChanged(object sender, EventArgs e)
         {
             if (prev != null)
@@ -805,7 +875,8 @@ namespace practice0CSharp
 
         public void getUploadState(bool result)
         {
-            if(result)
+            upload.Close();
+            if (result)
             {
                 int cnt = uploadList.Items.Count;
                 for (int i = 0; i < cnt; i++) //
@@ -821,28 +892,44 @@ namespace practice0CSharp
 
         public void getUploadState(string folderName)
         {
-            string responseFromServer = "";
-            HttpWebRequest Hwr2 = (HttpWebRequest)WebRequest.Create("http://files.cloud.naver.com/MakeDirectory.ndrive");
-            Hwr2.Method = "POST";
-            Hwr2.Referer = "http://cloud.naver.com/";
-            Hwr2.UserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36";
-            Hwr2.CookieContainer = cookie;
+            bool exist = false;
+            foreach (string item in downloadList.Items)
+                if ("[" + folderName + "]" == item)
+                {
+                    switch (MessageBox.Show(item + " 폴더가 이미 존재합니다. 해당 위치에 저장하시겠습니까?", "업로드", MessageBoxButtons.YesNo))
+                    {
+                        case System.Windows.Forms.DialogResult.Yes:
+                            exist = true;
+                            upload.Close();
+                            break;
+                        case System.Windows.Forms.DialogResult.No:
+                            return;
+                    }
+                }
+            if (!exist)
+            {
+                string responseFromServer = "";
+                HttpWebRequest Hwr2 = (HttpWebRequest)WebRequest.Create("http://files.cloud.naver.com/MakeDirectory.ndrive");
+                Hwr2.Method = "POST";
+                Hwr2.Referer = "http://cloud.naver.com/";
+                Hwr2.UserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36";
+                Hwr2.CookieContainer = cookie;
 
-            System.IO.Stream str = Hwr2.GetRequestStream();
-            System.IO.StreamWriter stwr = new System.IO.StreamWriter(str, new UTF8Encoding(false));
-            //string encodestr = HttpUtility.UrlEncode(DIR + downloadList.SelectedItem.ToString());
-            stwr.Write("userid=" + ID + "&useridx=" + IDX + "&dstresource=/" + folderName + "/");
-            stwr.Flush(); stwr.Close(); stwr.Dispose();
-            str.Flush(); str.Close(); str.Dispose();
+                System.IO.Stream str = Hwr2.GetRequestStream();
+                System.IO.StreamWriter stwr = new System.IO.StreamWriter(str, new UTF8Encoding(false));
+                //string encodestr = HttpUtility.UrlEncode(DIR + downloadList.SelectedItem.ToString());
+                stwr.Write("userid=" + ID + "&useridx=" + IDX + "&dstresource=/" + folderName + "/");
+                stwr.Flush(); stwr.Close(); stwr.Dispose();
+                str.Flush(); str.Close(); str.Dispose();
 
 
-            HttpWebResponse response = (HttpWebResponse)Hwr2.GetResponse();
+                HttpWebResponse response = (HttpWebResponse)Hwr2.GetResponse();
 
-            Stream dataStream = response.GetResponseStream();
-            StreamReader reader = new StreamReader(dataStream, Encoding.UTF8);
+                Stream dataStream = response.GetResponseStream();
+                StreamReader reader = new StreamReader(dataStream, Encoding.UTF8);
 
-            responseFromServer = reader.ReadToEnd();
-
+                responseFromServer = reader.ReadToEnd();
+            }
 
             DIR += folderName + "/";
             pageIndex++;
