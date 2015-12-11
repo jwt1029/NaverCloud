@@ -20,9 +20,13 @@ namespace practice0CSharp
         {
             progressBar1.Value = value;
         }
-        public void setProgressText(string text)
+        public void setDownloadProgressText(string text)
         {
             processText.Text += text + " 다운로드 중..." + Environment.NewLine;
+        }
+        public void setUploadProgressText(string text)
+        {
+            processText.Text += text + " 업로드 중..." + Environment.NewLine;
         }
     }
 }

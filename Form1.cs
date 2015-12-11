@@ -296,7 +296,7 @@ namespace practice0CSharp
             parameta.Add(fileName);
             parameta.Add(length);
 
-            progress.setProgressText(fileName);
+            progress.setDownloadProgressText(fileName);
             worker.RunWorkerAsync(parameta);
 
         }
@@ -535,6 +535,11 @@ namespace practice0CSharp
 
         private void uploadFiles(bool overwrite)
         {
+            if (progress == null)
+            {
+                progress = new showDownloadProgress();
+                progress.Show();
+            }
             byte[] reqBody = setRequestBody(overwrite);
             string responseFromServer = "";
             string name = files[0].Name;
@@ -549,14 +554,22 @@ namespace practice0CSharp
             //byte[] buffer = System.Text.Encoding.UTF8.GetBytes(reqBody);
             //파일 이어붙이기 StringA.ToByte + FileByte + StringB.ToByte
             System.IO.Stream str = Hwr2.GetRequestStream();
-            int cnt = 0;
+            
             int prc = 0;
-            while (true)
+            progress.setUploadProgressText(name);
+            long fileSize = reqBody.Length;
+            long Reamin_Data_Length = fileSize;
+            long ChunkSize = 1024;
+            while (Reamin_Data_Length > 0)
             {
-                //cnt += 10400;               
-                long a = str.Length;            // HERE!!!ㅜㅜㅜ
-                str.Write(reqBody, 0, 3000);
+                str.Write(reqBody, (int)(fileSize - Reamin_Data_Length), (int)Math.Min(ChunkSize, Reamin_Data_Length));
+                Reamin_Data_Length -= ChunkSize;
+                prc = (int)((long)(fileSize - (Reamin_Data_Length > 0 ? Reamin_Data_Length : 0)) * 1000 / fileSize);    //여기 에러
+                //if (prc > 0)
+                //    MessageBox.Show("N");
+                progress.setProgressValue(prc);
             }
+
             using (System.IO.StreamWriter stwr = new System.IO.StreamWriter(str, Encoding.UTF8))
             {
                 //stwr.Write(reqBody);
@@ -903,6 +916,11 @@ namespace practice0CSharp
                     if (!uploadFolder())
                         continue;
                 }
+                if (progress != null)
+                {
+                    progress.Close();
+                    progress = null;
+                }
                 timer3.Start();
                 getList();
             }
@@ -926,6 +944,8 @@ namespace practice0CSharp
                 }
                 directories.RemoveAt(0);
             }
+            progress.Close();
+            progress = null;
             return true;
         }
 
@@ -1005,6 +1025,8 @@ namespace practice0CSharp
                 if (!uploadFilecheck())
                     continue;
             }
+            progress.Close();
+            progress = null;
             timer3.Start();
             getList();
         }
