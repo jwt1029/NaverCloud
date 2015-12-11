@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace practice0CSharp
 {
-    public partial class showDownloadProgress : Form
+    public partial class ShowDownloadProgress : Form
     {
-        public showDownloadProgress()
+        public ShowDownloadProgress()
         {
             InitializeComponent();
         }

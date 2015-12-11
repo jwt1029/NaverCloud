@@ -1,6 +1,6 @@
 ﻿namespace practice0CSharp
 {
-    partial class showDownloadProgress
+    partial class ShowDownloadProgress
     {
         /// <summary>
         /// Required designer variable.

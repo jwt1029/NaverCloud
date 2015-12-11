@@ -261,12 +261,12 @@ namespace practice0CSharp
 
         }
         private BackgroundWorker worker;
-        showDownloadProgress progress = null;
+        ShowDownloadProgress progress = null;
         private void downloadFile(string fileName)
         {
             if (progress == null)
             {
-                progress = new showDownloadProgress();
+                progress = new ShowDownloadProgress();
                 progress.Show();
             }
             string key = getGenerateKey();
@@ -535,11 +535,6 @@ namespace practice0CSharp
 
         private void uploadFiles(bool overwrite)
         {
-            if (progress == null)
-            {
-                progress = new showDownloadProgress();
-                progress.Show();
-            }
             byte[] reqBody = setRequestBody(overwrite);
             string responseFromServer = "";
             string name = files[0].Name;
@@ -567,7 +562,8 @@ namespace practice0CSharp
                 prc = (int)((long)(fileSize - (Reamin_Data_Length > 0 ? Reamin_Data_Length : 0)) * 1000 / fileSize);    //여기 에러
                 //if (prc > 0)
                 //    MessageBox.Show("N");
-                progress.setProgressValue(prc);
+                uploadWorker.ReportProgress(prc);
+//                progress.setProgressValue(prc);
             }
 
             using (System.IO.StreamWriter stwr = new System.IO.StreamWriter(str, Encoding.UTF8))
@@ -897,32 +893,60 @@ namespace practice0CSharp
             prev = null;
         }
 
+        BackgroundWorker uploadWorker;
         public void getUploadState(bool result)
         {
             upload.Close();
             if (result)
             {
-                int cnt = files.Count;
-                for (int i = 0; i < cnt; i++) //
+                if (progress == null)
                 {
-                    downloadbt.Enabled = false;
-                    if (!uploadFilecheck())
-                        continue;
+                    progress = new ShowDownloadProgress();
+                    progress.Show();
                 }
-                cnt = directories.Count;
-                for (int i = 0; i < cnt; i++)
-                {
-                    downloadbt.Enabled = false;
-                    if (!uploadFolder())
-                        continue;
-                }
-                if (progress != null)
-                {
-                    progress.Close();
-                    progress = null;
-                }
-                timer3.Start();
-                getList();
+
+                uploadWorker = new BackgroundWorker();
+                uploadWorker.WorkerReportsProgress = true;
+                uploadWorker.WorkerSupportsCancellation = true;
+                uploadWorker.DoWork += new DoWorkEventHandler(uploadWorker_DoWork);
+                uploadWorker.ProgressChanged += new ProgressChangedEventHandler(uploadWorker_ProgressChanged);
+                uploadWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(uploadWorker_RunWorkerCompleted);
+
+                uploadWorker.RunWorkerAsync();
+            }
+        }
+
+        private void uploadWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            timer3.Start();
+            getList();
+        }
+
+        private void uploadWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            progress.setProgressValue(e.ProgressPercentage);
+        }
+
+        private void uploadWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            int cnt = files.Count;
+            for (int i = 0; i < cnt; i++) //
+            {
+                downloadbt.Enabled = false;
+                if (!uploadFilecheck())
+                    continue;
+            }
+            cnt = directories.Count;
+            for (int i = 0; i < cnt; i++)
+            {
+                downloadbt.Enabled = false;
+                if (!uploadFolder())
+                    continue;
+            }
+            if (progress != null)
+            {
+                progress.Close();
+                progress = null;
             }
         }
 
