@@ -20,6 +20,7 @@ namespace practice0CSharp
         public Upload(IMyInterface frm, int cnt, string DIR)
         {
             InitializeComponent();
+            CheckForIllegalCrossThreadCalls = false;
             this.frm = frm;
             front = Environment.NewLine + Environment.NewLine + cnt + "개의 파일을 " + DIR;
             question.Text = front + "로 업로드 하시겠습니까?";

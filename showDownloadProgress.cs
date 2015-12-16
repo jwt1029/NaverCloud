@@ -15,6 +15,7 @@ namespace practice0CSharp
         public ShowDownloadProgress()
         {
             InitializeComponent();
+            CheckForIllegalCrossThreadCalls = false;
         }
         public void setProgressValue(int value)
         {

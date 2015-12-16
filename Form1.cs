@@ -48,6 +48,7 @@ namespace practice0CSharp
         public Form1()
         {
             InitializeComponent();
+            CheckForIllegalCrossThreadCalls = false;
             uploadList.AllowDrop = true;
         }
         // http://javascriptdotnet.codeplex.com/
@@ -126,10 +127,10 @@ namespace practice0CSharp
             while (responseFromServer.IndexOf("\"href\":") != -1)
             {
                 string parseStr = null;
-                parseStr = substr(responseFromServer, responseFromServer.IndexOf("\"href\":\"") + "\"href\":\"".Length, responseFromServer.IndexOf("\"priority\":") - 1);
+                parseStr = responseFromServer.Substring(responseFromServer.IndexOf("\"href\":\"") + "\"href\":\"".Length);
+                parseStr = parseStr.Substring(0, parseStr.IndexOf("\","));
                 parseStr = parseStr.Substring(parseStr.IndexOf(dir) + dir.Length);
                 parseStr = parseStr.Substring(parseStr.IndexOf("\\/") + "\\/".Length);
-                parseStr = parseStr.Substring(0, parseStr.LastIndexOf("\""));
 
                 string reNo = null;
                 reNo = responseFromServer.Substring(responseFromServer.IndexOf("\"resourceno\":") + "\"resourceno\":".Length);
@@ -193,10 +194,10 @@ namespace practice0CSharp
                         while (responseFromServer.IndexOf("\"href\":") != -1)
                         {
                             string parseStr = null;
-                            parseStr = substr(responseFromServer, responseFromServer.IndexOf("\"href\":\"") + "\"href\":\"".Length, responseFromServer.IndexOf("\"priority\":") - 1);
+                            parseStr = responseFromServer.Substring(responseFromServer.IndexOf("\"href\":\"") + "\"href\":\"".Length);
+                            parseStr = parseStr.Substring(0, parseStr.IndexOf("\","));
                             parseStr = parseStr.Substring(parseStr.IndexOf(dir) + dir.Length);
                             parseStr = parseStr.Substring(parseStr.IndexOf("\\/") + "\\/".Length);
-                            parseStr = parseStr.Substring(0, parseStr.LastIndexOf("\""));
 
                             string reNo = null;
                             reNo = substr(responseFromServer, responseFromServer.IndexOf("\"resourceno\":\"") + "\"resourceno\":\"".Length, responseFromServer.IndexOf("\"resourcetype\":") - 1);
@@ -720,8 +721,17 @@ namespace practice0CSharp
         }
         private void downloadbt_Click(object sender, EventArgs e)
         {
-            listBox1_DoubleClick(new object(), new EventArgs());
+            string select = downloadList.SelectedItem.ToString();
+            if (select[0] == '[' && select[select.Length - 1] == ']')
+                downloadFolder();
+            else
+                listBox1_DoubleClick(new object(), new EventArgs());
             getList();
+        }
+
+        private void downloadFolder()
+        {
+            throw new NotImplementedException();
         }
 
         private void removeFilebt_Click(object sender, EventArgs e)
@@ -918,6 +928,12 @@ namespace practice0CSharp
 
         private void uploadWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            if (progress != null)
+            {
+                progress.Close();
+                progress = null;
+            }
+            upload.Close();
             timer3.Start();
             getList();
         }
@@ -943,11 +959,6 @@ namespace practice0CSharp
                 if (!uploadFolder())
                     continue;
             }
-            if (progress != null)
-            {
-                progress.Close();
-                progress = null;
-            }
         }
 
         private bool uploadFolder()
@@ -968,8 +979,6 @@ namespace practice0CSharp
                 }
                 directories.RemoveAt(0);
             }
-            progress.Close();
-            progress = null;
             return true;
         }
 
@@ -1039,20 +1048,22 @@ namespace practice0CSharp
 
                 responseFromServer = reader.ReadToEnd();
             }
-
+            if (progress == null)
+            {
+                progress = new ShowDownloadProgress();
+                progress.Show();
+            }
             DIR += folderName + "/";
             pageIndex++;
-            int cnt = uploadList.Items.Count;
-            downloadbt.Enabled = false;
-            for (int i = 0; i < cnt; i++) //
-            {
-                if (!uploadFilecheck())
-                    continue;
-            }
-            progress.Close();
-            progress = null;
-            timer3.Start();
-            getList();
+            uploadWorker = new BackgroundWorker();
+            uploadWorker.WorkerReportsProgress = true;
+            uploadWorker.WorkerSupportsCancellation = true;
+            uploadWorker.DoWork += new DoWorkEventHandler(uploadWorker_DoWork);
+            uploadWorker.ProgressChanged += new ProgressChangedEventHandler(uploadWorker_ProgressChanged);
+            uploadWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(uploadWorker_RunWorkerCompleted);
+
+            uploadWorker.RunWorkerAsync();
+            
         }
     }
 }
